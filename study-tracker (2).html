@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Withdrawals Countdown — Study & Homework Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #050914;
+    --bg2: #0A1330;
+    --panel: #0E1A3E;
+    --panel-hi: #16265A;
+    --ink: #EAF1FF;
+    --ink-dim: #8FA3D6;
+    --blue: #4FC3F7;
+    --blue-deep: #3B6EF2;
+    --violet: #8B6BFF;
+    --crimson: #FF5C68;
+    --mint: #6EE7C0;
+    --line: rgba(143,163,214,0.16);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% -10%, rgba(139,107,255,0.16), transparent 45%),
+      radial-gradient(circle at 90% 10%, rgba(79,195,247,0.14), transparent 40%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:80px;
+    min-height:100vh;
+  }
+  h1,h2,h3{font-family:'Anton', sans-serif; font-weight:400; letter-spacing:0.01em;}
+
+  .wrap{max-width:920px; margin:0 auto; padding:36px 20px 0; position:relative;}
+
+  header.hero{
+    display:flex; flex-direction:column; gap:6px;
+    padding-bottom:24px; border-bottom:1px solid var(--line);
+    margin-bottom:24px; position:relative;
+  }
+  header.hero .eyebrow{color:var(--blue); font-size:13px; letter-spacing:0.03em;}
+  header.hero h1{
+    font-size:40px; line-height:1;
+    background:linear-gradient(90deg, var(--blue) 0%, var(--violet) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  header.hero p.sub{color:var(--ink-dim); font-size:15px; margin-top:8px; max-width:65ch; line-height:1.5;}
+
+  .bell{
+    position:absolute; top:0; right:0; width:42px; height:42px;
+    border-radius:50%; border:1px solid var(--line); background:var(--panel);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    color:var(--blue); font-size:18px;
+  }
+  .bell:hover{border-color:var(--blue);}
+  .bell .dot{
+    position:absolute; top:8px; right:8px; width:8px; height:8px; border-radius:50%;
+    background:var(--crimson); display:none;
+  }
+  .bell.has-new .dot{display:block;}
+
+  /* main tabs */
+  .main-tabs{display:flex; gap:10px; margin-top:20px;}
+  .main-tabs button{
+    flex:1; background:var(--panel); border:1px solid var(--line); color:var(--ink-dim);
+    font-family:'Anton', sans-serif; font-size:15px; letter-spacing:0.01em;
+    padding:13px 10px; border-radius:12px; cursor:pointer;
+    transition:all 0.15s;
+  }
+  .main-tabs button.active{
+    background:linear-gradient(120deg, var(--blue-deep), var(--violet)); color:#fff; border-color:transparent;
+  }
+
+  .overall{
+    display:flex; align-items:center; gap:20px;
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px; margin-top:16px;
+    box-shadow: 0 0 0 1px rgba(79,195,247,0.04), 0 10px 30px -20px rgba(79,195,247,0.4);
+  }
+  .overall .ring{position:relative; width:60px; height:60px; flex:none;}
+  .overall .ring svg{transform:rotate(-90deg);}
+  .overall .ring .pct{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'Anton', sans-serif; font-size:14px;
+  }
+  .overall .stats{flex:1;}
+  .overall .stats .num{font-family:'Anton', sans-serif; font-size:18px;}
+  .overall .stats .label{color:var(--ink-dim); font-size:12.5px; margin-top:2px;}
+
+  nav.subtabs{display:flex; gap:6px; overflow-x:auto; padding:18px 0 0; margin-bottom:6px;}
+  nav.subtabs button{
+    flex:none; background:transparent; border:1px solid var(--line); color:var(--ink-dim);
+    font-family:'Inter'; font-size:13px; font-weight:500; padding:9px 14px;
+    border-radius:999px; cursor:pointer; white-space:nowrap;
+  }
+  nav.subtabs button:hover{border-color:var(--blue); color:var(--ink);}
+  nav.subtabs button.active{
+    background:linear-gradient(90deg, var(--blue-deep), var(--violet));
+    border-color:transparent; color:#fff; font-weight:600;
+  }
+  nav.subtabs button .tag{display:block; font-size:10px; opacity:0.8; margin-top:1px;}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .note-banner{
+    background:rgba(139,107,255,0.08); border:1px solid rgba(139,107,255,0.3);
+    border-radius:var(--radius); padding:12px 16px; font-size:13px; color:var(--ink-dim);
+    margin:14px 0 18px; line-height:1.5;
+  }
+  .note-banner b{color:var(--violet);}
+
+  .day-block{margin-bottom:26px;}
+  .day-head{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-bottom:10px; flex-wrap:wrap; gap:8px;
+  }
+  .day-head h2{font-size:19px;}
+  .day-progress{font-size:12.5px; color:var(--ink-dim);}
+  .day-progress b{color:var(--mint);}
+
+  .bar{height:5px; background:rgba(255,255,255,0.07); border-radius:99px; overflow:hidden; margin-bottom:12px;}
+  .bar-fill{height:100%; background:linear-gradient(90deg, var(--blue), var(--violet)); border-radius:99px; transition:width 0.3s ease;}
+
+  ul.tasks{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+
+  li.task{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:12px 14px; display:flex; gap:12px; align-items:flex-start;
+    transition:background 0.15s, border-color 0.15s;
+  }
+  li.task.done{background:var(--panel-hi); border-color:rgba(110,231,192,0.35);}
+
+  .chk{
+    flex:none; width:21px; height:21px; margin-top:2px;
+    border-radius:6px; border:1.5px solid var(--ink-dim); background:transparent;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    color:transparent; font-size:13px; transition:all 0.15s;
+  }
+  li.task.done .chk{background:var(--mint); border-color:var(--mint); color:#082A20;}
+
+  .task-body{flex:1; min-width:0;}
+  .task-top{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+  .time-range{font-family:'Anton', sans-serif; font-size:13px; color:var(--blue); letter-spacing:0.01em; white-space:nowrap;}
+  .subject-line{font-size:14.5px; font-weight:600; margin-top:2px;}
+  .subject-tag{color:var(--violet); font-weight:700;}
+  .duration{font-size:11.5px; color:var(--ink-dim); margin-top:5px;}
+
+  .status{
+    margin-top:7px; display:inline-flex; align-items:center; gap:6px;
+    font-size:12px; font-weight:600; padding:3px 9px; border-radius:99px;
+  }
+  .status.early{background:rgba(110,231,192,0.14); color:var(--mint);}
+  .status.ontime{background:rgba(79,195,247,0.14); color:var(--blue);}
+  .status.late{background:rgba(255,92,104,0.14); color:var(--crimson);}
+  .status.done{background:rgba(139,107,255,0.14); color:var(--violet);}
+
+  /* Homework */
+  .hw-form{
+    display:flex; gap:8px; flex-wrap:wrap; background:var(--panel); border:1px solid var(--line);
+    border-radius:var(--radius); padding:14px; margin-top:16px;
+  }
+  .hw-form input[type="text"]{
+    flex:2; min-width:160px; background:var(--bg2); border:1px solid var(--line); color:var(--ink);
+    padding:10px 12px; border-radius:8px; font-family:'Inter'; font-size:14px;
+  }
+  .hw-form input[type="date"]{
+    flex:1; min-width:140px; background:var(--bg2); border:1px solid var(--line); color:var(--ink);
+    padding:10px 12px; border-radius:8px; font-family:'Inter'; font-size:14px;
+  }
+  .hw-form button{
+    background:linear-gradient(90deg, var(--blue-deep), var(--violet)); color:#fff; border:none;
+    padding:10px 18px; border-radius:8px; font-family:'Anton', sans-serif; font-size:13px; cursor:pointer;
+  }
+  .hw-group{margin-top:22px;}
+  .hw-group h3{font-size:15px; color:var(--blue); margin-bottom:8px;}
+  .hw-empty{color:var(--ink-dim); font-size:13.5px; margin-top:18px;}
+  .hw-item{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:12px 14px; display:flex; gap:12px; align-items:flex-start; margin-bottom:8px;
+  }
+  .hw-item.done{background:var(--panel-hi); border-color:rgba(110,231,192,0.35);}
+  .hw-item .task-body{flex:1;}
+  .hw-item .txt{font-size:14.5px; font-weight:600;}
+  .hw-item.done .txt{text-decoration:line-through; color:var(--ink-dim);}
+  .hw-del{
+    flex:none; background:none; border:none; color:var(--ink-dim); cursor:pointer; font-size:15px;
+  }
+  .hw-del:hover{color:var(--crimson);}
+
+  /* Pomodoro */
+  .timer-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:32px 20px; margin-top:18px; text-align:center;
+  }
+  .timer-mode{
+    display:inline-block; font-size:13px; font-weight:600; letter-spacing:0.04em;
+    padding:5px 14px; border-radius:99px; margin-bottom:18px;
+    background:rgba(79,195,247,0.14); color:var(--blue);
+  }
+  .timer-mode.short{background:rgba(110,231,192,0.14); color:var(--mint);}
+  .timer-mode.long{background:rgba(139,107,255,0.14); color:var(--violet);}
+  .timer-display{
+    font-family:'Anton', sans-serif; font-size:76px; line-height:1;
+    background:linear-gradient(90deg, var(--blue) 0%, var(--violet) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    margin-bottom:22px;
+  }
+  .timer-controls{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:22px;}
+  .timer-controls button{
+    font-family:'Anton', sans-serif; font-size:14px; letter-spacing:0.01em;
+    padding:12px 22px; border-radius:10px; cursor:pointer; border:1px solid var(--line);
+    background:var(--panel-hi); color:var(--ink);
+  }
+  .timer-controls button.primary{
+    background:linear-gradient(90deg, var(--blue-deep), var(--violet)); color:#fff; border-color:transparent;
+  }
+  .timer-controls button:hover{border-color:var(--blue);}
+  .timer-dots{display:flex; gap:8px; justify-content:center; margin-bottom:6px;}
+  .timer-dots .dotc{
+    width:11px; height:11px; border-radius:50%; border:1.5px solid var(--ink-dim); background:transparent;
+  }
+  .timer-dots .dotc.filled{background:var(--mint); border-color:var(--mint);}
+  .timer-sub{color:var(--ink-dim); font-size:12.5px; margin-top:4px;}
+
+  .timer-settings{
+    display:flex; gap:14px; justify-content:center; flex-wrap:wrap;
+    margin-top:24px; padding-top:20px; border-top:1px solid var(--line);
+  }
+  .timer-settings label{
+    display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--ink-dim);
+  }
+  .timer-settings input{
+    width:70px; background:var(--bg2); border:1px solid var(--line); color:var(--ink);
+    padding:8px 10px; border-radius:8px; font-family:'Inter'; font-size:14px; text-align:center;
+  }
+
+  footer.note{
+    max-width:920px; margin:32px auto 0; padding:0 20px; color:var(--ink-dim); font-size:12.5px; line-height:1.6;
+  }
+  footer.note .reset{
+    background:none; border:1px solid var(--line); color:var(--ink-dim); padding:6px 12px;
+    border-radius:99px; font-size:12px; cursor:pointer; margin-top:10px; margin-right:8px;
+  }
+  footer.note .reset:hover{border-color:var(--crimson); color:var(--crimson);}
+
+  #toastStack{
+    position:fixed; top:16px; right:16px; z-index:999;
+    display:flex; flex-direction:column; gap:10px; max-width:320px;
+  }
+  .toast{
+    display:flex; gap:10px; align-items:flex-start;
+    background:linear-gradient(160deg, var(--panel-hi), var(--panel));
+    border:1px solid rgba(79,195,247,0.35);
+    border-radius:12px; padding:12px 14px;
+    box-shadow:0 12px 30px -12px rgba(79,195,247,0.5), 0 0 0 1px rgba(255,255,255,0.02);
+    animation: slideIn 0.35s ease;
+  }
+  @keyframes slideIn{ from{ transform:translateX(30px); opacity:0; } to{ transform:translateX(0); opacity:1; } }
+  .toast .avatar{
+    flex:none; width:36px; height:36px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Anton', sans-serif; font-size:15px; color:#06101F;
+  }
+  .toast .body{flex:1; min-width:0;}
+  .toast .name{font-family:'Anton', sans-serif; font-size:13px;}
+  .toast .msg{font-size:12.5px; color:var(--ink-dim); margin-top:2px; line-height:1.4;}
+  .toast .close{flex:none; background:none; border:none; color:var(--ink-dim); cursor:pointer; font-size:14px;}
+
+  #feedPanel{
+    position:fixed; top:0; right:0; height:100%; width:320px; max-width:88vw;
+    background:var(--panel); border-left:1px solid var(--line);
+    transform:translateX(100%); transition:transform 0.25s ease; z-index:998;
+    padding:20px 16px; overflow-y:auto;
+  }
+  #feedPanel.open{transform:translateX(0);}
+  #feedPanel h3{font-family:'Anton', sans-serif; font-size:18px; margin-bottom:14px; color:var(--blue);}
+  .feed-item{display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .feed-item .avatar{
+    flex:none; width:32px; height:32px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Anton', sans-serif; font-size:13px; color:#06101F;
+  }
+  .feed-item .name{font-family:'Anton', sans-serif; font-size:12.5px;}
+  .feed-item .msg{font-size:12px; color:var(--ink-dim); margin-top:2px;}
+  #feedClose{
+    background:none; border:1px solid var(--line); color:var(--ink-dim);
+    border-radius:99px; padding:5px 12px; font-size:12px; cursor:pointer; margin-bottom:6px;
+  }
+
+  @media (max-width: 560px){
+    header.hero h1{font-size:28px;}
+    .overall{flex-direction:column; align-items:flex-start;}
+    .task-top{flex-direction:column;}
+    #toastStack{left:12px; right:12px; max-width:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="toastStack"></div>
+<div id="feedPanel">
+  <button id="feedClose">Close</button>
+  <h3>Cheer Feed</h3>
+  <div id="feedList"></div>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="bell" id="bellBtn">🔔<span class="dot"></span></div>
+    <span class="eyebrow">13 October – 8 November 2026 · WITHDRAWALS ON 8 NOV</span>
+    <h1>The Long Grind</h1>
+    <p class="sub">27 days, one goal. Tick off each block as you finish it — the app remembers, tells you if you were early, on time, or late, and someone from the crew always has something to say about it. Homework lives in its own tab so it never gets mixed up with the main plan.</p>
+  </header>
+
+  <div class="main-tabs">
+    <button class="mt-btn active" data-view="study">📘 Study Plan</button>
+    <button class="mt-btn" data-view="homework">📝 Homework</button>
+    <button class="mt-btn" data-view="timer">⏱️ Focus Timer</button>
+  </div>
+
+  <div class="overall" id="overallBar">
+    <div class="ring">
+      <svg width="60" height="60" viewBox="0 0 60 60">
+        <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="6.5"/>
+        <circle id="ringFill" cx="30" cy="30" r="25" fill="none" stroke="#4FC3F7" stroke-width="6.5"
+          stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157"/>
+      </svg>
+      <div class="pct" id="overallPct">0%</div>
+    </div>
+    <div class="stats">
+      <div class="num" id="overallNum">0 of 0 tasks done</div>
+      <div class="label" id="overallLabel">across the whole study plan</div>
+    </div>
+  </div>
+
+  <!-- STUDY VIEW -->
+  <div class="view active" id="view-study">
+    <nav class="subtabs" id="weekNav"></nav>
+    <div id="weekContainer"></div>
+  </div>
+
+  <!-- HOMEWORK VIEW -->
+  <div class="view" id="view-homework">
+    <div class="hw-form">
+      <input type="text" id="hwText" placeholder="e.g. Chemistry worksheet Q1–10">
+      <input type="date" id="hwDate">
+      <button id="hwAddBtn">Add to homework</button>
+    </div>
+    <div id="hwContainer"></div>
+  </div>
+
+  <!-- TIMER VIEW -->
+  <div class="view" id="view-timer">
+    <div class="timer-card">
+      <div class="timer-mode" id="timerModeLabel">WORK</div>
+      <div class="timer-display" id="timerDisplay">25:00</div>
+      <div class="timer-controls">
+        <button class="primary" id="timerStartBtn">Start</button>
+        <button id="timerPauseBtn">Pause</button>
+        <button id="timerResetBtn">Reset</button>
+        <button id="timerSkipBtn">Skip</button>
+      </div>
+      <div class="timer-dots" id="timerDots"></div>
+      <div class="timer-sub" id="timerSub">0 focus sessions completed today</div>
+
+      <div class="timer-settings">
+        <label>Work (min)<input type="number" id="setWork" min="1" max="120"></label>
+        <label>Short break<input type="number" id="setShort" min="1" max="60"></label>
+        <label>Long break<input type="number" id="setLong" min="1" max="90"></label>
+        <label>Sessions / long<input type="number" id="setCycle" min="1" max="12"></label>
+      </div>
+    </div>
+  </div>
+
+  <footer class="note">
+    Saved automatically in this browser, on this device — close the file and reopen it and everything you've ticked (study + homework) will still be here.
+    <br>
+    <button class="reset" id="resetStudyBtn">Clear study progress</button>
+    <button class="reset" id="resetHwBtn">Clear homework list</button>
+  </footer>
+</div>
+
+<script>
+/* ============== CREW CHEER SYSTEM ============== */
+const crew = [
+  { name:"Megumi", init:"満", color:"#3B6EF2", lines:[
+    "Don't overthink it. Open the book, start with the first line, keep going.",
+    "You don't need to feel ready. Just don't stop halfway through.",
+    "I'm not going to cheer loudly. Just get it done — I'll be checking.",
+    "Stop waiting for a miracle. Put in the focus right now."
+  ]},
+  { name:"Gojo", init:"五", color:"#4FC3F7", lines:[
+    "Obviously you're going to ace this. I already decided.",
+    "Strongest doesn't mean fastest — it means you don't quit at hour two. Keep going.",
+    "42 days is nothing. You've survived worse timetables than this.",
+    "You're smart enough to crush this. Go show them who's the strongest!"
+  ]},
+  { name:"Yuji", init:"虎", color:"#6EE7C0", lines:[
+    "Let's go!! One task down, that's a whole vibe shift.",
+    "I believe in you way more than you believe in yourself right now.",
+    "Small wins count. That checkbox is a win. Keep stacking them.",
+    "Take it one page at a time. I know you can do this!"
+  ]},
+  { name:"Nobara", init:"釘", color:"#FF5C68", lines:[
+    "Quit staring at your phone and go finish the chapter. I'm watching.",
+    "Late is fine. Not starting is not fine. Pick one.",
+    "Homework doesn't do itself. Go.",
+    "Don't let a textbook intimidate you. Show them what you're made of."
+  ]},
+  { name:"Nanami", init:"七", color:"#8B6BFF", lines:[
+    "Overtime is not a badge of honour. Finish inside the slot and go rest.",
+    "A plan is only useful if you follow the schedule. Stay on time.",
+    "42 days of discipline beats one all-nighter. Proceed accordingly.",
+    "Finish your work efficiently so you can enjoy your free time. Focus now."
+  ]},
+  { name:"Maki", init:"真", color:"#4FC3F7", lines:[
+    "Talent's got nothing to do with it. Just put in the reps.",
+    "No excuses, just effort. Go again.",
+    "Six weeks. That's plenty of time if you don't waste it.",
+    "Let it be hard. Winning will taste that much sweeter. Pick up the pen."
+  ]},
+  { name:"Yuta", init:"悠", color:"#6EE7C0", lines:[
+    "You've got this. Take it one page at a time, no rush.",
+    "It's okay to be nervous about withdrawals. Just keep your hands moving through the notes.",
+    "I'm rooting for you, quietly but seriously."
+  ]},
+  { name:"Toji", init:"冥", color:"#FF5C68", lines:[
+    "No technique needed for this one. Just show up and grind.",
+    "Sitting down is the hard part. You already did that. Keep going.",
+    "Don't need to be special to win. Just don't flinch."
+  ]},
+  { name:"Todo", init:"堂", color:"#FFC857", lines:[
+    "Channel your passion into these notes! Become an absolute powerhouse!",
+    "Real ones study with their whole heart. Let's hear it!",
+    "That's the spirit! Now double it and get back to the books!"
+  ]},
+];
+function pickCheer(){
+  const p = crew[Math.floor(Math.random()*crew.length)];
+  const line = p.lines[Math.floor(Math.random()*p.lines.length)];
+  return { name:p.name, init:p.init, color:p.color, line };
+}
+const feed = [];
+function pushFeed(cheer){
+  feed.unshift(cheer);
+  if(feed.length > 40) feed.pop();
+  renderFeed();
+  document.getElementById("bellBtn").classList.add("has-new");
+}
+function renderFeed(){
+  const list = document.getElementById("feedList");
+  list.innerHTML = "";
+  feed.forEach(c => {
+    const item = document.createElement("div");
+    item.className = "feed-item";
+    item.innerHTML =
+      '<div class="avatar" style="background:'+c.color+'">'+c.init+'</div>' +
+      '<div><div class="name">'+c.name+'</div><div class="msg">'+c.line+'</div></div>';
+    list.appendChild(item);
+  });
+}
+function showToast(cheer){
+  const stack = document.getElementById("toastStack");
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML =
+    '<div class="avatar" style="background:'+cheer.color+'">'+cheer.init+'</div>' +
+    '<div class="body"><div class="name">'+cheer.name+'</div><div class="msg">'+cheer.line+'</div></div>' +
+    '<button class="close">✕</button>';
+  toast.querySelector(".close").addEventListener("click", () => toast.remove());
+  stack.appendChild(toast);
+  pushFeed(cheer);
+  setTimeout(() => { toast.remove(); }, 6000);
+}
+document.getElementById("bellBtn").addEventListener("click", () => {
+  document.getElementById("feedPanel").classList.add("open");
+  document.getElementById("bellBtn").classList.remove("has-new");
+});
+document.getElementById("feedClose").addEventListener("click", () => {
+  document.getElementById("feedPanel").classList.remove("open");
+});
+
+
+/* ============== STUDY DATA ============== */
+function d(start,end,subject,detail){ return {start,end,subject,detail}; }
+
+const week1Days = [
+  { dateLabel:"Tue 13 Oct — Today (easy start)", dateISO:"2026-10-13", tasks:[
+    d("19:15","20:00","Biology","1 Cells"),
+    d("20:10","20:55","Chemistry","1 States of matter"),
+    d("21:05","21:35","Review","Quick review of what you did + plan tomorrow"),
+  ]},
+  { dateLabel:"Wed 14 Oct", dateISO:"2026-10-14", tasks:[
+    d("17:00","18:00","Biology","2 Classification"),
+    d("18:10","19:10","Chemistry","2 Atoms, elements & compounds"),
+    d("19:20","20:20","Physics","1 (start) Motion & forces"),
+    d("20:30","21:30","Maths","1 Number"),
+  ]},
+  { dateLabel:"Thu 15 Oct", dateISO:"2026-10-15", tasks:[
+    d("17:00","18:15","Biology","3 Movement into/out of cells"),
+    d("18:25","19:25","Chemistry","3 Stoichiometry (Part 1)"),
+    d("19:35","20:35","Physics","1 (continue) Energy & pressure"),
+    d("20:45","21:45","Islamiyat","1 Major themes of the Qur'an (start 15 passages)"),
+  ]},
+  { dateLabel:"Fri 16 Oct", dateISO:"2026-10-16", tasks:[
+    d("17:00","18:15","Biology","4 Biological molecules"),
+    d("18:25","19:40","Chemistry","3 Stoichiometry (Part 2 – calculations)"),
+    d("19:50","20:50","Maths","2 Algebra & graphs (start)"),
+    d("21:00","21:50","CS","1 Data representation"),
+  ]},
+  { dateLabel:"Sat 17 Oct", dateISO:"2026-10-17", tasks:[
+    d("15:00","16:15","Biology","5 Enzymes"),
+    d("16:25","17:40","Physics","1 (finish) + start 2 Thermal"),
+    d("17:50","19:00","Chemistry","4 Electrochemistry"),
+    d("19:10","20:00","Islamiyat","2 History & importance of the Qur'an"),
+  ]},
+  { dateLabel:"Sun 18 Oct", dateISO:"2026-10-18", tasks:[
+    d("15:00","16:20","Biology","6 Plant nutrition (long)"),
+    d("16:30","17:45","Maths","2 Algebra & graphs (continue)"),
+    d("17:55","19:00","Physics","2 Thermal physics"),
+    d("19:10","20:00","English","Paper 1 Comprehension practice"),
+  ]},
+  { dateLabel:"Mon 19 Oct (starts 6 PM)", dateISO:"2026-10-19", tasks:[
+    d("18:00","19:15","Biology","7 Transport in flowering plants"),
+    d("19:25","20:25","Chemistry","5 Chemical energetics"),
+    d("20:35","21:35","Islamiyat","3 Life of the Prophet (start)"),
+  ]},
+];
+
+const week2Days = [
+  { dateLabel:"Tue 20 Oct", dateISO:"2026-10-20", tasks:[
+    d("17:00","18:20","Biology","8 Human nutrition (long)"),
+    d("18:30","19:30","Chemistry","6 Chemical reactions"),
+    d("19:40","20:40","Maths","3 Coordinate geometry"),
+    d("20:50","21:50","CS","2 Data transmission + 3 Hardware (start)"),
+  ]},
+  { dateLabel:"Wed 21 Oct", dateISO:"2026-10-21", tasks:[
+    d("17:00","18:15","Biology","9 Human gas exchange"),
+    d("18:25","19:40","Physics","3 Waves"),
+    d("19:50","20:50","Chemistry","7 Acids, bases & salts (start)"),
+    d("21:00","21:50","EM","1 Rocks and minerals"),
+  ]},
+  { dateLabel:"Thu 22 Oct", dateISO:"2026-10-22", tasks:[
+    d("17:00","18:15","Biology","10 Respiration"),
+    d("18:25","19:40","Chemistry","7 Acids, bases & salts (finish)"),
+    d("19:50","20:50","Maths","4 Geometry"),
+    d("21:00","21:50","Islamiyat","3 Life of the Prophet (continue)"),
+  ]},
+  { dateLabel:"Fri 23 Oct", dateISO:"2026-10-23", tasks:[
+    d("17:00","18:30","Biology","11 Transport in humans (long)"),
+    d("18:40","19:40","Physics","4 Electricity & magnetism (start)"),
+    d("19:50","20:50","CS","3 Hardware (finish) + 4 Software"),
+    d("21:00","21:45","English","Directed Writing practice"),
+  ]},
+  { dateLabel:"Sat 24 Oct", dateISO:"2026-10-24", tasks:[
+    d("15:00","16:20","Biology","12 Disease and immunity"),
+    d("16:30","17:45","Physics","4 Electricity & magnetism (continue)"),
+    d("17:55","19:00","Maths","5 Mensuration"),
+    d("19:10","20:00","Islamiyat","4 First Islamic community"),
+  ]},
+  { dateLabel:"Sun 25 Oct", dateISO:"2026-10-25", tasks:[
+    d("15:00","16:20","Biology","13 Excretion"),
+    d("16:30","17:50","Chemistry","8 The Periodic Table"),
+    d("18:00","19:10","Physics","4 (finish) + 5 Nuclear (start)"),
+    d("19:20","20:00","EM","2 Energy and the Environment"),
+  ]},
+  { dateLabel:"Mon 26 Oct (starts 6 PM)", dateISO:"2026-10-26", tasks:[
+    d("18:00","19:30","Biology","14 Coordination and control (long)"),
+    d("19:40","20:40","Chemistry","9 Metals"),
+    d("20:50","21:40","Islamiyat","5 Major teachings in the Hadiths (20 hadiths start)"),
+  ]},
+];
+
+const week3Days = [
+  { dateLabel:"Tue 27 Oct", dateISO:"2026-10-27", tasks:[
+    d("17:00","18:15","Biology","15 Coordination in plants"),
+    d("18:25","19:40","Maths","6 Trigonometry"),
+    d("19:50","20:50","Physics","5 Nuclear physics"),
+    d("21:00","21:50","CS","5 The internet and its uses"),
+  ]},
+  { dateLabel:"Wed 28 Oct", dateISO:"2026-10-28", tasks:[
+    d("17:00","18:20","Biology","16 Development & continuity of life"),
+    d("18:30","19:45","Chemistry","10 Chemistry of the environment"),
+    d("19:55","20:55","EM","3 Agriculture + 4 Water"),
+    d("21:05","21:50","English","Narrative/Descriptive practice"),
+  ]},
+  { dateLabel:"Thu 29 Oct", dateISO:"2026-10-29", tasks:[
+    d("17:00","18:30","Biology","17 Inheritance (long)"),
+    d("18:40","19:50","Maths","7 Transformations & vectors"),
+    d("20:00","21:00","Physics","6 Space physics"),
+    d("21:10","21:50","Islamiyat","6 History & importance of the Hadiths"),
+  ]},
+  { dateLabel:"Fri 30 Oct", dateISO:"2026-10-30", tasks:[
+    d("17:00","18:20","Biology","18 Biotechnology & genetic modification"),
+    d("18:30","19:45","Chemistry","11 Organic chemistry (long)"),
+    d("19:55","20:55","CS","6 Automated & emerging technologies + 7 Algorithm design"),
+    d("21:05","21:50","EM","5 Oceans and fisheries"),
+  ]},
+  { dateLabel:"Sat 31 Oct", dateISO:"2026-10-31", tasks:[
+    d("15:00","16:30","Biology","19 Relationships with environment (ecology)"),
+    d("16:40","18:00","Chemistry","12 Experimental techniques"),
+    d("18:10","19:20","Maths","8 Probability + 9 Statistics (start)"),
+    d("19:30","20:00","Islamiyat","7 Rightly Guided Caliphs (start)"),
+  ]},
+  { dateLabel:"Sun 1 Nov", dateISO:"2026-11-01", tasks:[
+    d("15:00","16:30","Islamiyat","7 Caliphs (finish) + 8 Articles of Faith & Pillars"),
+    d("16:40","18:00","CS","8 Programming (practice)"),
+    d("18:10","19:20","Maths","9 Statistics (finish) + mixed practice"),
+    d("19:30","20:00","EM","6 Managing natural hazards"),
+  ]},
+  { dateLabel:"Mon 2 Nov (starts 6 PM)", dateISO:"2026-11-02", tasks:[
+    d("18:00","19:30","Biology","Full revision (weak areas + diagrams)"),
+    d("19:40","20:40","CS","9 Databases + 10 Boolean logic"),
+    d("20:50","21:40","EM","7 Atmosphere + 8 Human Population"),
+  ]},
+];
+
+const finalDays = [
+  { dateLabel:"Tue 3 Nov", dateISO:"2026-11-03", tasks:[
+    d("17:00","18:30","Chemistry","Full revision (calculations focus)"),
+    d("18:40","19:50","Physics","Full revision"),
+    d("20:00","21:00","Islamiyat","Full revision (passages + Hadiths)"),
+    d("21:10","21:50","English","Mixed Paper 1 + Paper 2 practice"),
+  ]},
+  { dateLabel:"Wed 4 Nov", dateISO:"2026-11-04", tasks:[
+    d("17:00","18:30","Maths","Full mixed practice"),
+    d("18:40","19:50","CS","Full revision + programming practice"),
+    d("20:00","21:00","EM","9 Natural Ecosystems + full EM review"),
+    d("21:10","21:50","English","Light practice"),
+  ]},
+  { dateLabel:"Thu 5 Nov", dateISO:"2026-11-05", tasks:[
+    d("17:00","18:30","Biology + Chemistry","Past-paper style questions"),
+    d("18:40","19:50","Physics + Maths","Past-paper style questions"),
+    d("20:00","21:00","Islamiyat + CS","Mixed"),
+    d("21:10","21:50","EM + English","Light review"),
+  ]},
+  { dateLabel:"Fri 6 Nov", dateISO:"2026-11-06", tasks:[
+    d("17:00","18:30","Weakest subject","Deep dive (you choose)"),
+    d("18:40","20:00","All subjects","Full subject rotation — short active recall"),
+    d("20:10","21:30","English","Full practice paper"),
+  ]},
+  { dateLabel:"Sat 7 Nov — last full day", dateISO:"2026-11-07", tasks:[
+    d("15:00","16:30","Biology + Chemistry","Final rapid revision"),
+    d("16:40","18:00","Physics + Maths","Final rapid revision"),
+    d("18:10","19:20","Islamiyat + CS","Final"),
+    d("19:30","20:00","EM + English","Light final look"),
+  ]},
+];
+
+const examDay = [
+  { dateLabel:"Sun 8 Nov — Withdrawals Day", dateISO:"2026-11-08", tasks:[] },
+];
+
+const studyWeeks = [
+  { id:"wk1", label:"Week 1", range:"13 – 19 Oct", days: week1Days },
+  { id:"wk2", label:"Week 2", range:"20 – 26 Oct", days: week2Days },
+  { id:"wk3", label:"Week 3", range:"27 Oct – 2 Nov", days: week3Days },
+  { id:"final", label:"Final Days", range:"3 – 7 Nov", days: finalDays },
+  { id:"examday", label:"Withdrawals Day", range:"8 Nov", days: examDay },
+];
+
+// assign stable ids
+studyWeeks.forEach(week => {
+  week.days.forEach((day, di) => {
+    day.tasks.forEach((t, ti) => { t.id = week.id + "-d" + di + "-t" + ti; });
+  });
+});
+
+/* ============== STORAGE ============== */
+const STUDY_KEY = "studyPlan_13oct_v1";
+const HW_KEY = "homeworkList_v1";
+
+function loadStudyState(){
+  try{ const raw = localStorage.getItem(STUDY_KEY); return raw ? JSON.parse(raw) : {}; }
+  catch(e){ return {}; }
+}
+function saveStudyState(s){ try{ localStorage.setItem(STUDY_KEY, JSON.stringify(s)); }catch(e){} }
+let studyState = loadStudyState();
+
+function loadHwList(){
+  try{ const raw = localStorage.getItem(HW_KEY); return raw ? JSON.parse(raw) : []; }
+  catch(e){ return []; }
+}
+function saveHwList(l){ try{ localStorage.setItem(HW_KEY, JSON.stringify(l)); }catch(e){} }
+let hwList = loadHwList();
+
+/* ============== HELPERS ============== */
+function fmtTime12(hhmm){
+  const [h,m] = hhmm.split(":").map(Number);
+  const period = h >= 12 ? "pm" : "am";
+  let h12 = h % 12; if(h12 === 0) h12 = 12;
+  return h12 + (m ? ":" + String(m).padStart(2,"0") : "") + " " + period;
+}
+function timeRangeLabel(t){ return fmtTime12(t.start) + " – " + fmtTime12(t.end); }
+function endDateTime(day, t){ return new Date(day.dateISO + "T" + t.end + ":00"); }
+
+function computeStatus(day, t){
+  const rec = studyState[t.id];
+  if(!rec || !rec.checked || !rec.completedAt) return null;
+  const end = endDateTime(day, t);
+  const completed = new Date(rec.completedAt);
+  const diffMin = Math.round((completed - end) / 60000);
+  if(diffMin <= -2) return { kind:"early", text:"Finished " + Math.abs(diffMin) + " min early" };
+  if(diffMin >= 2) return { kind:"late", text:"Finished " + diffMin + " min late" };
+  return { kind:"ontime", text:"Finished on time" };
+}
+function dayStats(day){
+  const total = day.tasks.length;
+  const done = day.tasks.filter(t => studyState[t.id] && studyState[t.id].checked).length;
+  return { total, done };
+}
+function weekStats(week){
+  let total=0, done=0;
+  week.days.forEach(day => { const s = dayStats(day); total += s.total; done += s.done; });
+  return { total, done };
+}
+function overallStudyStats(){
+  let total=0, done=0;
+  studyWeeks.forEach(w => { const s = weekStats(w); total += s.total; done += s.done; });
+  return { total, done };
+}
+function overallHwStats(){
+  const total = hwList.length;
+  const done = hwList.filter(h => h.checked).length;
+  return { total, done };
+}
+
+/* ============== RENDER: STUDY ============== */
+let activeWeekId = "wk1";
+
+function renderWeekNav(){
+  const nav = document.getElementById("weekNav");
+  nav.innerHTML = "";
+  studyWeeks.forEach(week => {
+    const s = weekStats(week);
+    const btn = document.createElement("button");
+    btn.className = "week-btn" + (week.id === activeWeekId ? " active" : "");
+    btn.innerHTML = week.label + '<span class="tag">' + s.done + "/" + s.total + "</span>";
+    btn.addEventListener("click", () => { activeWeekId = week.id; renderStudy(); });
+    nav.appendChild(btn);
+  });
+}
+
+function toggleStudyTask(day, t){
+  const rec = studyState[t.id] || {};
+  if(rec.checked){
+    studyState[t.id] = { checked:false };
+  }else{
+    studyState[t.id] = { checked:true, completedAt: new Date().toISOString() };
+    showToast(pickCheer());
+  }
+  saveStudyState(studyState);
+  renderStudy();
+  renderOverall();
+}
+
+function renderDayBlock(day){
+  const block = document.createElement("div");
+  block.className = "day-block";
+  const s = dayStats(day);
+  const pct = s.total ? Math.round((s.done/s.total)*100) : 0;
+
+  const head = document.createElement("div");
+  head.className = "day-head";
+  head.innerHTML = "<h2>" + day.dateLabel + "</h2>" +
+    '<div class="day-progress"><b>' + s.done + "</b> of " + s.total + " done</div>";
+  block.appendChild(head);
+
+  const bar = document.createElement("div");
+  bar.className = "bar";
+  bar.innerHTML = '<div class="bar-fill" style="width:' + pct + '%"></div>';
+  block.appendChild(bar);
+
+  const ul = document.createElement("ul");
+  ul.className = "tasks";
+  day.tasks.forEach(t => {
+    const rec = studyState[t.id];
+    const isDone = !!(rec && rec.checked);
+    const li = document.createElement("li");
+    li.className = "task" + (isDone ? " done" : "");
+
+    const chk = document.createElement("button");
+    chk.className = "chk";
+    chk.textContent = isDone ? "✓" : "";
+    chk.addEventListener("click", () => toggleStudyTask(day, t));
+
+    const body = document.createElement("div");
+    body.className = "task-body";
+    body.innerHTML =
+      '<div class="task-top"><span class="time-range">' + timeRangeLabel(t) + '</span></div>' +
+      '<div class="subject-line"><span class="subject-tag">' + t.subject + '</span> · ' + t.detail + '</div>';
+
+    const status = computeStatus(day, t);
+    if(status){
+      const badge = document.createElement("div");
+      badge.className = "status " + status.kind;
+      badge.textContent = status.text;
+      body.appendChild(badge);
+    }
+
+    li.appendChild(chk);
+    li.appendChild(body);
+    ul.appendChild(li);
+  });
+  block.appendChild(ul);
+  return block;
+}
+
+function renderStudy(){
+  renderWeekNav();
+  const container = document.getElementById("weekContainer");
+  container.innerHTML = "";
+  const week = studyWeeks.find(w => w.id === activeWeekId);
+
+  const bannerText = {
+    wk1: "<b>Easy start:</b> today is a light ~2 hr warm-up. Longer chapters are front-loaded so you have time to revisit them. End every session by writing 3–5 key points or doing 2–3 practice questions.",
+    wk3: "<b>Tip:</b> keep a small notebook of weak areas and review it every Sunday. Sleep and short walks between sessions help retention.",
+    final: "<b>Final stretch:</b> full revision, then past-paper style practice, then rapid final revision on 7 Nov. No new material.",
+    examday: "<b>This is it.</b> Light morning review only of formulas, key diagrams, and Qur'an/Hadith points if time allows. Rest well. Good luck!"
+  };
+  if(bannerText[week.id]){
+    const note = document.createElement("div");
+    note.className = "note-banner";
+    note.innerHTML = bannerText[week.id];
+    container.appendChild(note);
+  }
+
+  week.days.forEach(day => container.appendChild(renderDayBlock(day)));
+}
+
+/* ============== RENDER: HOMEWORK ============== */
+function addHomework(){
+  const textEl = document.getElementById("hwText");
+  const dateEl = document.getElementById("hwDate");
+  const text = textEl.value.trim();
+  if(!text) return;
+  const item = {
+    id: "hw-" + Date.now() + "-" + Math.floor(Math.random()*1000),
+    text: text,
+    dueDate: dateEl.value || null,
+    checked: false,
+    completedAt: null,
+    createdAt: new Date().toISOString(),
+  };
+  hwList.push(item);
+  saveHwList(hwList);
+  textEl.value = "";
+  dateEl.value = "";
+  renderHomework();
+  renderOverall();
+}
+
+function toggleHw(id){
+  const item = hwList.find(h => h.id === id);
+  if(!item) return;
+  if(item.checked){
+    item.checked = false; item.completedAt = null;
+  }else{
+    item.checked = true; item.completedAt = new Date().toISOString();
+    showToast(pickCheer());
+  }
+  saveHwList(hwList);
+  renderHomework();
+  renderOverall();
+}
+function deleteHw(id){
+  hwList = hwList.filter(h => h.id !== id);
+  saveHwList(hwList);
+  renderHomework();
+  renderOverall();
+}
+
+function hwStatus(item){
+  if(!item.checked || !item.completedAt) return null;
+  if(!item.dueDate) return { kind:"done", text:"Completed" };
+  const due = new Date(item.dueDate + "T23:59:59");
+  const completed = new Date(item.completedAt);
+  if(completed <= due) return { kind:"ontime", text:"Done on time" };
+  return { kind:"late", text:"Done late" };
+}
+
+function renderHomework(){
+  const container = document.getElementById("hwContainer");
+  container.innerHTML = "";
+  if(hwList.length === 0){
+    const empty = document.createElement("div");
+    empty.className = "hw-empty";
+    empty.textContent = "Nothing on the homework list yet — add your first task above.";
+    container.appendChild(empty);
+    return;
+  }
+
+  // group by due date (or "No date")
+  const groups = {};
+  hwList.forEach(item => {
+    const key = item.dueDate || "No date set";
+    if(!groups[key]) groups[key] = [];
+    groups[key].push(item);
+  });
+  const keys = Object.keys(groups).sort((a,b) => {
+    if(a === "No date set") return 1;
+    if(b === "No date set") return -1;
+    return a.localeCompare(b);
+  });
+
+  keys.forEach(key => {
+    const groupDiv = document.createElement("div");
+    groupDiv.className = "hw-group";
+    const label = key === "No date set" ? "No date set" :
+      new Date(key + "T00:00:00").toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
+    groupDiv.innerHTML = "<h3>" + label + "</h3>";
+
+    groups[key].forEach(item => {
+      const status = hwStatus(item);
+      const row = document.createElement("div");
+      row.className = "hw-item" + (item.checked ? " done" : "");
+
+      const chk = document.createElement("button");
+      chk.className = "chk";
+      chk.textContent = item.checked ? "✓" : "";
+      chk.addEventListener("click", () => toggleHw(item.id));
+
+      const body = document.createElement("div");
+      body.className = "task-body";
+      body.innerHTML = '<div class="txt">' + item.text + '</div>';
+      if(status){
+        const badge = document.createElement("div");
+        badge.className = "status " + status.kind;
+        badge.textContent = status.text;
+        body.appendChild(badge);
+      }
+
+      const del = document.createElement("button");
+      del.className = "hw-del";
+      del.textContent = "✕";
+      del.addEventListener("click", () => deleteHw(item.id));
+
+      row.appendChild(chk);
+      row.appendChild(body);
+      row.appendChild(del);
+      groupDiv.appendChild(row);
+    });
+    container.appendChild(groupDiv);
+  });
+}
+
+/* ============== OVERALL RING + TABS ============== */
+let currentMainView = "study";
+function renderOverall(){
+  let total, done, label;
+  if(currentMainView === "study"){
+    const s = overallStudyStats(); total = s.total; done = s.done; label = "across the whole 42-day plan";
+  }else{
+    const s = overallHwStats(); total = s.total; done = s.done; label = "homework tasks completed";
+  }
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById("overallPct").textContent = pct + "%";
+  document.getElementById("overallNum").textContent = done + " of " + total + (currentMainView === "study" ? " study blocks done" : " homework tasks done");
+  document.getElementById("overallLabel").textContent = label;
+  const circumference = 157;
+  const offset = circumference - (pct/100)*circumference;
+  document.getElementById("ringFill").style.strokeDashoffset = offset;
+}
+
+document.querySelectorAll(".mt-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".mt-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentMainView = btn.dataset.view;
+    document.getElementById("view-study").classList.toggle("active", currentMainView === "study");
+    document.getElementById("view-homework").classList.toggle("active", currentMainView === "homework");
+    document.getElementById("view-timer").classList.toggle("active", currentMainView === "timer");
+    document.getElementById("overallBar").style.display = (currentMainView === "timer") ? "none" : "flex";
+    renderOverall();
+  });
+});
+
+document.getElementById("hwAddBtn").addEventListener("click", addHomework);
+document.getElementById("hwText").addEventListener("keydown", (e) => { if(e.key === "Enter") addHomework(); });
+
+document.getElementById("resetStudyBtn").addEventListener("click", () => {
+  if(confirm("Clear all ticked study progress? This can't be undone.")){
+    studyState = {};
+    saveStudyState(studyState);
+    renderStudy();
+    renderOverall();
+  }
+});
+document.getElementById("resetHwBtn").addEventListener("click", () => {
+  if(confirm("Clear the entire homework list? This can't be undone.")){
+    hwList = [];
+    saveHwList(hwList);
+    renderHomework();
+    renderOverall();
+  }
+});
+
+/* ============== POMODORO TIMER ============== */
+const POMO_KEY = "pomodoroState_v1";
+function defaultPomo(){
+  return {
+    workMin:25, shortMin:5, longMin:15, sessionsBeforeLong:4,
+    mode:"work", running:false, endTime:null,
+    remainingMs: 25*60*1000, sessionsCompleted:0,
+  };
+}
+function loadPomo(){
+  try{
+    const raw = localStorage.getItem(POMO_KEY);
+    if(!raw) return defaultPomo();
+    const parsed = JSON.parse(raw);
+    return Object.assign(defaultPomo(), parsed);
+  }catch(e){ return defaultPomo(); }
+}
+function savePomo(){ try{ localStorage.setItem(POMO_KEY, JSON.stringify(pomo)); }catch(e){} }
+let pomo = loadPomo();
+
+function pomoModeDuration(mode){
+  if(mode === "work") return pomo.workMin * 60000;
+  if(mode === "short") return pomo.shortMin * 60000;
+  return pomo.longMin * 60000;
+}
+function pomoModeLabel(mode){
+  if(mode === "work") return "WORK";
+  if(mode === "short") return "SHORT BREAK";
+  return "LONG BREAK";
+}
+function beep(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.22].forEach(delay => {
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = 880;
+      o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.001, ctx.currentTime + delay);
+      g.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + delay + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.18);
+      o.start(ctx.currentTime + delay);
+      o.stop(ctx.currentTime + delay + 0.2);
+    });
+  }catch(e){}
+}
+function fmtClock(ms){
+  const total = Math.max(0, Math.round(ms/1000));
+  const m = Math.floor(total/60);
+  const s = total % 60;
+  return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+}
+function pomoRemaining(){
+  if(pomo.running && pomo.endTime){
+    return new Date(pomo.endTime) - new Date();
+  }
+  return pomo.remainingMs;
+}
+function pomoStart(){
+  if(pomo.running) return;
+  pomo.running = true;
+  pomo.endTime = new Date(Date.now() + pomo.remainingMs).toISOString();
+  savePomo();
+  renderTimer();
+}
+function pomoPause(){
+  if(!pomo.running) return;
+  pomo.remainingMs = Math.max(0, new Date(pomo.endTime) - new Date());
+  pomo.running = false;
+  pomo.endTime = null;
+  savePomo();
+  renderTimer();
+}
+function pomoReset(){
+  pomo.running = false;
+  pomo.endTime = null;
+  pomo.remainingMs = pomoModeDuration(pomo.mode);
+  savePomo();
+  renderTimer();
+}
+function pomoAdvance(){
+  if(pomo.mode === "work"){
+    pomo.sessionsCompleted += 1;
+    pomo.mode = (pomo.sessionsCompleted % pomo.sessionsBeforeLong === 0) ? "long" : "short";
+  }else{
+    pomo.mode = "work";
+  }
+  pomo.running = false;
+  pomo.endTime = null;
+  pomo.remainingMs = pomoModeDuration(pomo.mode);
+  savePomo();
+  beep();
+  showToast(pickCheer());
+  renderTimer();
+}
+function pomoTick(){
+  if(pomo.running){
+    const rem = pomoRemaining();
+    if(rem <= 0){
+      pomoAdvance();
+    }else if(currentMainView === "timer"){
+      document.getElementById("timerDisplay").textContent = fmtClock(rem);
+    }
+  }
+}
+function renderTimer(){
+  const modeLabelEl = document.getElementById("timerModeLabel");
+  modeLabelEl.textContent = pomoModeLabel(pomo.mode);
+  modeLabelEl.className = "timer-mode" + (pomo.mode === "short" ? " short" : pomo.mode === "long" ? " long" : "");
+  document.getElementById("timerDisplay").textContent = fmtClock(pomoRemaining());
+  document.getElementById("timerStartBtn").style.display = pomo.running ? "none" : "inline-block";
+  document.getElementById("timerPauseBtn").style.display = pomo.running ? "inline-block" : "none";
+  document.getElementById("timerSub").textContent = pomo.sessionsCompleted + " focus session" + (pomo.sessionsCompleted === 1 ? "" : "s") + " completed today";
+
+  const dotsEl = document.getElementById("timerDots");
+  dotsEl.innerHTML = "";
+  const posInCycle = pomo.sessionsCompleted % pomo.sessionsBeforeLong;
+  for(let i=0;i<pomo.sessionsBeforeLong;i++){
+    const dot = document.createElement("span");
+    dot.className = "dotc" + (i < posInCycle ? " filled" : "");
+    dotsEl.appendChild(dot);
+  }
+
+  if(!pomo.running){
+    document.getElementById("setWork").value = pomo.workMin;
+    document.getElementById("setShort").value = pomo.shortMin;
+    document.getElementById("setLong").value = pomo.longMin;
+    document.getElementById("setCycle").value = pomo.sessionsBeforeLong;
+  }
+}
+function applyPomoSettings(){
+  if(pomo.running) return;
+  pomo.workMin = Math.max(1, parseInt(document.getElementById("setWork").value) || pomo.workMin);
+  pomo.shortMin = Math.max(1, parseInt(document.getElementById("setShort").value) || pomo.shortMin);
+  pomo.longMin = Math.max(1, parseInt(document.getElementById("setLong").value) || pomo.longMin);
+  pomo.sessionsBeforeLong = Math.max(1, parseInt(document.getElementById("setCycle").value) || pomo.sessionsBeforeLong);
+  pomo.remainingMs = pomoModeDuration(pomo.mode);
+  savePomo();
+  renderTimer();
+}
+
+document.getElementById("timerStartBtn").addEventListener("click", pomoStart);
+document.getElementById("timerPauseBtn").addEventListener("click", pomoPause);
+document.getElementById("timerResetBtn").addEventListener("click", pomoReset);
+document.getElementById("timerSkipBtn").addEventListener("click", pomoAdvance);
+["setWork","setShort","setLong","setCycle"].forEach(id => {
+  document.getElementById(id).addEventListener("change", applyPomoSettings);
+});
+
+setInterval(pomoTick, 1000);
+
+/* ============== INIT ============== */
+renderStudy();
+renderHomework();
+renderOverall();
+renderTimer();
+setTimeout(() => { showToast(pickCheer()); }, 700);
+</script>
+
+</body>
+</html>
